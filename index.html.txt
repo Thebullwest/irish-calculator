@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Irish Construction Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #009A49 0%, #007A39 100%);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .app-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            padding-top: 60px;
+        }
+
+        .tab-container {
+            display: flex;
+            overflow-x: auto;
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+            position: sticky;
+            top: 60px;
+            z-index: 999;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .tab-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            padding: 15px 20px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            color: #009A49;
+            border-bottom-color: #009A49;
+            background: #f0f9f5;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #009A49;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+            font-size: 0.9em;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #009A49;
+            background: #f0f9f5;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .cost-display {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cost-label {
+            font-weight: 500;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .cost-value {
+            font-weight: 700;
+            color: #009A49;
+            font-size: 1.1em;
+        }
+
+        .summary-container {
+            padding: 15px;
+        }
+
+        .total-card {
+            background: linear-gradient(135deg, #009A49 0%, #007A39 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,154,73,0.3);
+        }
+
+        .total-label {
+            font-size: 1em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .total-amount {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .per-sqm {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .breakdown-section {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .breakdown-header {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+            color: #009A49;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .breakdown-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .item-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .total-row {
+            background: #e8f5e9;
+            font-weight: bold;
+        }
+
+        .action-button {
+            background: #009A49;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin: 10px 0;
+            box-shadow: 0 3px 10px rgba(0,154,73,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .action-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 5px rgba(0,154,73,0.3);
+        }
+
+        .secondary-button {
+            background: white;
+            color: #009A49;
+            border: 2px solid #009A49;
+            box-shadow: none;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 55px;
+            }
+            
+            .app-title {
+                font-size: 1.2em;
+            }
+            
+            .tab {
+                font-size: 0.85em;
+                padding: 12px 16px;
+            }
+            
+            .total-amount {
+                font-size: 2em;
+            }
+            
+            .section {
+                padding: 12px;
+            }
+        }
+
+        /* Loading state */
+        .calculating {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Irish flag colors accent */
+        .irish-accent {
+            background: linear-gradient(90deg, #009A49 33%, #FFF 33% 66%, #FF7900 66%);
+            height: 3px;
+            width: 100%;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <div class="app-title">🏗️ Irish Construction Calculator</div>
+    </div>
+
+    <div class="container">
+        <div class="tab-container">
+            <button class="tab active" onclick="showTab('project')">Project</button>
+            <button class="tab" onclick="showTab('groundworks')">Groundworks</button>
+            <button class="tab" onclick="showTab('structure')">Structure</button>
+            <button class="tab" onclick="showTab('envelope')">Envelope</button>
+            <button class="tab" onclick="showTab('interiors')">Interiors</button>
+            <button class="tab" onclick="showTab('services')">Services</button>
+            <button class="tab" onclick="showTab('external')">External</button>
+            <button class="tab" onclick="showTab('fees')">Fees</button>
+            <button class="tab" onclick="showTab('summary')">Summary 📊</button>
+        </div>
+
+        <!-- Project Details Tab -->
+        <div id="project" class="tab-content active">
+            <div class="section">
+                <h2>Project Information</h2>
+                <div class="input-group">
+                    <label>Total Floor Area (m²)</label>
+                    <input type="number" id="area" value="185" min="50" max="1000" onchange="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label>Number of Storeys</label>
+                    <input type="number" id="storeys" value="2" min="1" max="3" onchange="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label>Project Location</label>
+                    <select id="location" onchange="calculateAll()">
+                        <option value="1">Dublin</option>
+                        <option value="0.95">Cork/Galway</option>
+                        <option value="0.9">Other Cities</option>
+                        <option value="0.85">Rural Areas</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Build Quality</label>
+                    <select id="quality" onchange="calculateAll()">
+                        <option value="1">Standard</option>
+                        <option value="1.25">High Specification</option>
+                        <option value="1.5">Premium/Luxury</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Groundworks Tab -->
+        <div id="groundworks" class="tab-content">
+            <div class="section">
+                <h2>Site Preparation</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="demolition" onchange="calculateAll()">
+                    <span>Demolition Required (€8,000)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="siteWorks" checked onchange="calculateAll()">
+                    <span>Site Clearance & Setup</span>
+                </label>
+                <div class="input-group">
+                    <label>Site Access</label>
+                    <select id="siteAccess" onchange="calculateAll()">
+                        <option value="1">Good - Easy Access</option>
+                        <option value="1.2">Moderate - Some Restrictions</option>
+                        <option value="1.5">Poor - Difficult Access</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Foundations</h2>
+                <div class="input-group">
+                    <label>Foundation Type</label>
+                    <select id="foundation" onchange="calculateAll()">
+                        <option value="350">Strip Foundation</option>
+                        <option value="450">Insulated Raft Foundation</option>
+                        <option value="600">Piled Foundation</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Ground Conditions</label>
+                    <select id="groundConditions" onchange="calculateAll()">
+                        <option value="1">Normal Ground</option>
+                        <option value="1.3">Clay/Poor Ground</option>
+                        <option value="1.5">Rock Excavation</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="radonBarrier" checked onchange="calculateAll()">
+                    <span>Radon Barrier</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Structure Tab -->
+        <div id="structure" class="tab-content">
+            <div class="section">
+                <h2>Structural Elements</h2>
+                <div class="input-group">
+                    <label>Wall Construction</label>
+                    <select id="wallType" onchange="calculateAll()">
+                        <option value="180">Cavity Block Walls</option>
+                        <option value="200">Timber Frame</option>
+                        <option value="220">ICF System</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Internal Walls</label>
+                    <select id="internalWalls" onchange="calculateAll()">
+                        <option value="1">Standard Stud Partitions</option>
+                        <option value="1.2">Block Walls (soundproof)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Floor Construction</label>
+                    <select id="floorType" onchange="calculateAll()">
+                        <option value="120">Beam & Block</option>
+                        <option value="140">Precast Concrete</option>
+                        <option value="100">Timber</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Envelope Tab -->
+        <div id="envelope" class="tab-content">
+            <div class="section">
+                <h2>Roof</h2>
+                <div class="input-group">
+                    <label>Roof Structure</label>
+                    <select id="roofStructure" onchange="calculateAll()">
+                        <option value="120">Cut Roof</option>
+                        <option value="100">Trussed Roof</option>
+                        <option value="150">Attic Truss (Room in Roof)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Roof Covering</label>
+                    <select id="roofCovering" onchange="calculateAll()">
+                        <option value="60">Concrete Tiles</option>
+                        <option value="90">Clay Tiles</option>
+                        <option value="120">Natural Slate</option>
+                        <option value="80">Fibre Cement Slate</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="roofWindows" onchange="calculateAll()">
+                    <span>Velux/Roof Windows (€800 each)</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>External Finishes</h2>
+                <div class="input-group">
+                    <label>External Wall Finish</label>
+                    <select id="externalFinish" onchange="calculateAll()">
+                        <option value="40">Sand & Cement Render</option>
+                        <option value="55">Acrylic Render</option>
+                        <option value="120">Brick Finish</option>
+                        <option value="90">Stone Cladding</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Insulation Spec</label>
+                    <select id="insulation" onchange="calculateAll()">
+                        <option value="1">Building Regs Standard</option>
+                        <option value="1.2">Enhanced (A2 BER)</option>
+                        <option value="1.4">Passive House Standard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Windows & Doors</h2>
+                <div class="input-group">
+                    <label>Windows Type</label>
+                    <select id="windowType" onchange="calculateAll()">
+                        <option value="350">PVC Double Glazed</option>
+                        <option value="450">Aluminum Thermally Broken</option>
+                        <option value="550">Aluclad Wood</option>
+                        <option value="650">Triple Glazed Premium</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>External Doors</label>
+                    <select id="externalDoors" onchange="calculateAll()">
+                        <option value="1200">Standard Composite</option>
+                        <option value="2000">High Security</option>
+                        <option value="3000">Premium Designer</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="slidingDoors" onchange="calculateAll()">
+                    <span>Large Sliding/Bifold Doors</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Interiors Tab -->
+        <div id="interiors" class="tab-content">
+            <div class="section">
+                <h2>Internal Finishes</h2>
+                <div class="input-group">
+                    <label>Wall Finishes</label>
+                    <select id="wallFinishes" onchange="calculateAll()">
+                        <option value="25">Plaster & Paint</option>
+                        <option value="30">Plaster & Quality Paint</option>
+                        <option value="40">Feature Walls/Wallpaper</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Floor Finishes (Main Areas)</label>
+                    <select id="floorFinishes" onchange="calculateAll()">
+                        <option value="35">Laminate Flooring</option>
+                        <option value="55">Engineered Wood</option>
+                        <option value="75">Solid Wood</option>
+                        <option value="65">Porcelain Tiles</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Staircase</label>
+                    <select id="staircase" onchange="calculateAll()">
+                        <option value="2500">Standard Timber</option>
+                        <option value="4000">Hardwood</option>
+                        <option value="6000">Contemporary/Glass</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Internal Doors</label>
+                    <select id="internalDoors" onchange="calculateAll()">
+                        <option value="120">Hollow Core Paint Grade</option>
+                        <option value="200">Solid Core Paint Grade</option>
+                        <option value="300">Oak Veneer</option>
+                        <option value="400">Solid Wood</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Kitchen</h2>
+                <div class="input-group">
+                    <label>Kitchen Quality</label>
+                    <select id="kitchen" onchange="calculateAll()">
+                        <option value="8000">Basic Range</option>
+                        <option value="15000">Mid Range</option>
+                        <option value="25000">High End</option>
+                        <option value="40000">Luxury Bespoke</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="utilityRoom" checked onchange="calculateAll()">
+                    <span>Utility Room</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Bathrooms</h2>
+                <div class="input-group">
+                    <label>Number of Bathrooms</label>
+                    <input type="number" id="bathrooms" value="2" min="1" max="5" onchange="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label>Number of En-suites</label>
+                    <input type="number" id="ensuites" value="1" min="0" max="4" onchange="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label>Bathroom Quality</label>
+                    <select id="bathroomQuality" onchange="calculateAll()">
+                        <option value="2500">Standard</option>
+                        <option value="4000">Quality</option>
+                        <option value="6000">Premium</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="tilingFull" checked onchange="calculateAll()">
+                    <span>Full Height Tiling</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Services Tab -->
+        <div id="services" class="tab-content">
+            <div class="section">
+                <h2>Electrical</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="electrical" checked onchange="calculateAll()">
+                    <span>Full Electrical Installation</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="smartHome" onchange="calculateAll()">
+                    <span>Smart Home Pre-wiring</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="solarPV" onchange="calculateAll()">
+                    <span>Solar PV System (4kW)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="evCharger" onchange="calculateAll()">
+                    <span>EV Car Charger</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Plumbing & Heating</h2>
+                <div class="input-group">
+                    <label>Heating System</label>
+                    <select id="heatingSystem" onchange="calculateAll()">
+                        <option value="5000">Gas Boiler & Radiators</option>
+                        <option value="8000">Oil Boiler & Radiators</option>
+                        <option value="12000">Air to Water Heat Pump</option>
+                        <option value="15000">Geothermal Heat Pump</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="underfloorHeating" onchange="calculateAll()">
+                    <span>Underfloor Heating (Ground Floor)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="solarHotWater" onchange="calculateAll()">
+                    <span>Solar Hot Water</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Other Services</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="mvhr" onchange="calculateAll()">
+                    <span>Mechanical Ventilation (HRV)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="alarm" checked onchange="calculateAll()">
+                    <span>Intruder Alarm System</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="network" checked onchange="calculateAll()">
+                    <span>Data/Network Cabling</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- External Works Tab -->
+        <div id="external" class="tab-content">
+            <div class="section">
+                <h2>Driveways & Paths</h2>
+                <div class="input-group">
+                    <label>Driveway Area (m²)</label>
+                    <input type="number" id="drivewayArea" value="80" min="0" max="500" onchange="calculateAll()">
+                </div>
+                <div class="input-group">
+                    <label>Driveway Finish</label>
+                    <select id="drivewayFinish" onchange="calculateAll()">
+                        <option value="45">Tarmac</option>
+                        <option value="65">Block Paving</option>
+                        <option value="80">Cobblelock</option>
+                        <option value="100">Resin Bound</option>
+                        <option value="120">Natural Stone</option>
+                    </select>
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="paths" checked onchange="calculateAll()">
+                    <span>Paths & Patios</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Boundaries & Landscaping</h2>
+                <div class="input-group">
+                    <label>Front Boundary</label>
+                    <select id="frontBoundary" onchange="calculateAll()">
+                        <option value="0">None/Open</option>
+                        <option value="100">Timber Fence</option>
+                        <option value="150">Block Wall & Railing</option>
+                        <option value="200">Stone Wall</option>
+                        <option value="250">Brick Wall & Gates</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Rear/Side Fencing (linear m)</label>
+                    <input type="number" id="fencingLength" value="60" min="0" max="300" onchange="calculateAll()">
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="landscaping" checked onchange="calculateAll()">
+                    <span>Basic Landscaping & Lawn</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="patio" onchange="calculateAll()">
+                    <span>Patio Area (20m²)</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Services & Connections</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="esbConnection" checked onchange="calculateAll()">
+                    <span>ESB Connection</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="waterConnection" checked onchange="calculateAll()">
+                    <span>Irish Water Connection</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="septicTank" onchange="calculateAll()">
+                    <span>Septic Tank/Treatment System</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Fees Tab -->
+        <div id="fees" class="tab-content">
+            <div class="section">
+                <h2>Professional Fees</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="architect" checked onchange="calculateAll()">
+                    <span>Architect (Design & Planning)</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="engineer" checked onchange="calculateAll()">
+                    <span>Structural Engineer</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="qs" onchange="calculateAll()">
+                    <span>Quantity Surveyor</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="projectManager" onchange="calculateAll()">
+                    <span>Project Manager</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Statutory Costs</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="planningFee" checked onchange="calculateAll()">
+                    <span>Planning Permission</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="devContribution" checked onchange="calculateAll()">
+                    <span>Development Contributions</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="commencement" checked onchange="calculateAll()">
+                    <span>Commencement Notice</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="bcaCert" checked onchange="calculateAll()">
+                    <span>BCA Certificates</span>
+                </label>
+            </div>
+
+            <div class="section">
+                <h2>Other Costs</h2>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="insurance" checked onchange="calculateAll()">
+                    <span>Site Insurance</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="warranty" checked onchange="calculateAll()">
+                    <span>Structural Warranty</span>
+                </label>
+                <div class="input-group">
+                    <label>Contingency (%)</label>
+                    <input type="number" id="contingency" value="10" min="5" max="20" onchange="calculateAll()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Tab -->
+        <div id="summary" class="tab-content">
+            <div class="summary-container">
+                <div class="total-card">
+                    <div class="total-label">Total Construction Cost</div>
+                    <div class="total-amount" id="totalCost">€0</div>
+                    <div class="per-sqm">€<span id="costPerSqm">0</span> per m²</div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">Groundworks & Foundations</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Site Preparation</span>
+                        <span class="item-value">€<span id="sitePrep">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Foundations</span>
+                        <span class="item-value">€<span id="foundations">0</span></span>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">Structure & Envelope</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Walls & Structure</span>
+                        <span class="item-value">€<span id="structureCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Roof</span>
+                        <span class="item-value">€<span id="roofCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Windows & Doors</span>
+                        <span class="item-value">€<span id="windowsCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">External Finishes</span>
+                        <span class="item-value">€<span id="externalCost">0</span></span>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">Internal Finishes</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Floors & Walls</span>
+                        <span class="item-value">€<span id="internalFinishes">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Kitchen & Utility</span>
+                        <span class="item-value">€<span id="kitchenCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Bathrooms</span>
+                        <span class="item-value">€<span id="bathroomsCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Stairs & Doors</span>
+                        <span class="item-value">€<span id="stairsDoors">0</span></span>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">Services</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Electrical</span>
+                        <span class="item-value">€<span id="electricalCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Plumbing & Heating</span>
+                        <span class="item-value">€<span id="plumbingCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Other Services</span>
+                        <span class="item-value">€<span id="otherServices">0</span></span>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">External Works</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Driveways & Paths</span>
+                        <span class="item-value">€<span id="drivewayCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Boundaries & Landscaping</span>
+                        <span class="item-value">€<span id="landscapeCost">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Connections</span>
+                        <span class="item-value">€<span id="connectionsCost">0</span></span>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">Professional Fees & Other</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Professional Fees</span>
+                        <span class="item-value">€<span id="professionalFees">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Statutory Costs</span>
+                        <span class="item-value">€<span id="statutoryCosts">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Insurance & Warranty</span>
+                        <span class="item-value">€<span id="insuranceCosts">0</span></span>
+                    </div>
+                </div>
+
+                <div class="breakdown-section">
+                    <div class="breakdown-header">Summary</div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Construction Subtotal</span>
+                        <span class="item-value">€<span id="subtotal">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">Contingency</span>
+                        <span class="item-value">€<span id="contingencyAmount">0</span></span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="item-label">VAT @ 13.5%</span>
+                        <span class="item-value">€<span id="vatAmount">0</span></span>
+                    </div>
+                    <div class="breakdown-item total-row">
+                        <span class="item-label">TOTAL PROJECT COST</span>
+                        <span class="item-value">€<span id="finalTotal">0</span></span>
+                    </div>
+                </div>
+
+                <div class="irish-accent"></div>
+
+                <button class="action-button" onclick="generateReport()">
+                    📄 Generate Detailed Report
+                </button>
+                <button class="action-button secondary-button" onclick="shareCalculation()">
+                    📤 Share Calculation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let calculations = {};
+
+        // Tab switching
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Calculate if showing summary
+            if (tabName === 'summary') {
+                calculateAll();
+            }
+        }
+
+        // Main calculation function
+        function calculateAll() {
+            const area = parseFloat(document.getElementById('area').value) || 185;
+            const storeys = parseFloat(document.getElementById('storeys').value) || 2;
+            const location = parseFloat(document.getElementById('location').value) || 1;
+            const quality = parseFloat(document.getElementById('quality').value) || 1;
+            
+            // Site Preparation
+            let sitePrep = 0;
+            if (document.getElementById('demolition').checked) sitePrep += 8000;
+            if (document.getElementById('siteWorks').checked) sitePrep += area * 15;
+            const siteAccess = parseFloat(document.getElementById('siteAccess').value) || 1;
+            sitePrep *= siteAccess;
+            
+            // Foundations
+            const foundationType = parseFloat(document.getElementById('foundation').value) || 350;
+            const groundConditions = parseFloat(document.getElementById('groundConditions').value) || 1;
+            let foundations = area * foundationType * groundConditions;
+            if (document.getElementById('radonBarrier').checked) foundations += area * 15;
+            
+            // Structure
+            const wallType = parseFloat(document.getElementById('wallType').value) || 180;
+            const internalWalls = parseFloat(document.getElementById('internalWalls').value) || 1;
+            const floorType = parseFloat(document.getElementById('floorType').value) || 120;
+            let structureCost = (area * wallType) + (area * 0.7 * 45 * internalWalls) + (area * floorType * (storeys - 1));
+            
+            // Roof
+            const roofStructure = parseFloat(document.getElementById('roofStructure').value) || 120;
+            const roofCovering = parseFloat(document.getElementById('roofCovering').value) || 60;
+            let roofCost = area * (roofStructure + roofCovering) / storeys * 1.2;
+            if (document.getElementById('roofWindows').checked) roofCost += 800 * Math.floor(area / 100);
+            
+            // External Finishes
+            const externalFinish = parseFloat(document.getElementById('externalFinish').value) || 40;
+            const insulation = parseFloat(document.getElementById('insulation').value) || 1;
+            let externalCost = area * 2.5 * externalFinish * insulation;
+            
+            // Windows & Doors
+            const windowType = parseFloat(document.getElementById('windowType').value) || 350;
+            const externalDoors = parseFloat(document.getElementById('externalDoors').value) || 1200;
+            let windowsCost = (area * 0.15 * windowType) + (3 * externalDoors);
+            if (document.getElementById('slidingDoors').checked) windowsCost += 4500;
+            
+            // Internal Finishes
+            const wallFinishes = parseFloat(document.getElementById('wallFinishes').value) || 25;
+            const floorFinishes = parseFloat(document.getElementById('floorFinishes').value) || 35;
+            let internalFinishes = (area * 2.8 * wallFinishes) + (area * floorFinishes);
+            
+            // Kitchen
+            let kitchenCost = parseFloat(document.getElementById('kitchen').value) || 15000;
+            if (document.getElementById('utilityRoom').checked) kitchenCost += 3500;
+            
+            // Bathrooms
+            const bathrooms = parseFloat(document.getElementById('bathrooms').value) || 2;
+            const ensuites = parseFloat(document.getElementById('ensuites').value) || 1;
+            const bathroomQuality = parseFloat(document.getElementById('bathroomQuality').value) || 2500;
+            let bathroomsCost = (bathrooms * bathroomQuality) + (ensuites * bathroomQuality * 0.8);
+            if (document.getElementById('tilingFull').checked) bathroomsCost *= 1.2;
+            
+            // Stairs & Doors
+            const staircase = parseFloat(document.getElementById('staircase').value) || 2500;
+            const internalDoors = parseFloat(document.getElementById('internalDoors').value) || 120;
+            const doorCount = 8 + (area / 20);
+            let stairsDoors = staircase * (storeys - 1) + (doorCount * internalDoors);
+            
+            // Electrical
+            let electricalCost = 0;
+            if (document.getElementById('electrical').checked) electricalCost += area * 55;
+            if (document.getElementById('smartHome').checked) electricalCost += area * 15;
+            if (document.getElementById('solarPV').checked) electricalCost += 6500;
+            if (document.getElementById('evCharger').checked) electricalCost += 1200;
+            
+            // Plumbing & Heating
+            const heatingSystem = parseFloat(document.getElementById('heatingSystem').value) || 5000;
+            let plumbingCost = (area * 35) + heatingSystem;
+            if (document.getElementById('underfloorHeating').checked) plumbingCost += area * 45;
+            if (document.getElementById('solarHotWater').checked) plumbingCost += 3500;
+            
+            // Other Services
+            let otherServices = 0;
+            if (document.getElementById('mvhr').checked) otherServices += 4500;
+            if (document.getElementById('alarm').checked) otherServices += 1500;
+            if (document.getElementById('network').checked) otherServices += 1200;
+            
+            // External Works
+            const drivewayArea = parseFloat(document.getElementById('drivewayArea').value) || 80;
+            const drivewayFinish = parseFloat(document.getElementById('drivewayFinish').value) || 45;
+            let drivewayCost = drivewayArea * drivewayFinish;
+            if (document.getElementById('paths').checked) drivewayCost += 2500;
+            
+            // Boundaries & Landscaping
+            const frontBoundary = parseFloat(document.getElementById('frontBoundary').value) || 0;
+            const fencingLength = parseFloat(document.getElementById('fencingLength').value) || 60;
+            let landscapeCost = (frontBoundary * 20) + (fencingLength * 80);
+            if (document.getElementById('landscaping').checked) landscapeCost += area * 15;
+            if (document.getElementById('patio').checked) landscapeCost += 20 * 120;
+            
+            // Connections
+            let connectionsCost = 0;
+            if (document.getElementById('esbConnection').checked) connectionsCost += 2500;
+            if (document.getElementById('waterConnection').checked) connectionsCost += 3000;
+            if (document.getElementById('septicTank').checked) connectionsCost += 8000;
+            
+            // Professional Fees
+            let professionalFees = 0;
+            if (document.getElementById('architect').checked) professionalFees += area * 65;
+            if (document.getElementById('engineer').checked) professionalFees += area * 20;
+            if (document.getElementById('qs').checked) professionalFees += area * 15;
+            if (document.getElementById('projectManager').checked) professionalFees += area * 25;
+            
+            // Statutory Costs
+            let statutoryCosts = 0;
+            if (document.getElementById('planningFee').checked) statutoryCosts += 250;
+            if (document.getElementById('devContribution').checked) statutoryCosts += area * 20;
+            if (document.getElementById('commencement').checked) statutoryCosts += 500;
+            if (document.getElementById('bcaCert').checked) statutoryCosts += 3500;
+            
+            // Insurance & Warranty
+            let insuranceCosts = 0;
+            if (document.getElementById('insurance').checked) insuranceCosts += 2500;
+            if (document.getElementById('warranty').checked) insuranceCosts += 3000;
+            
+            // Apply location and quality multipliers
+            const locationQualityMultiplier = location * quality;
+            
+            // Calculate subtotal
+            const constructionSubtotal = (
+                sitePrep + foundations + structureCost + roofCost + externalCost +
+                windowsCost + internalFinishes + kitchenCost + bathroomsCost + stairsDoors +
+                electricalCost + plumbingCost + otherServices + drivewayCost + landscapeCost +
+                connectionsCost
+            ) * locationQualityMultiplier;
+            
+            const subtotal = constructionSubtotal + professionalFees + statutoryCosts + insuranceCosts;
+            
+            // Contingency
+            const contingencyPercent = parseFloat(document.getElementById('contingency').value) || 10;
+            const contingencyAmount = subtotal * (contingencyPercent / 100);
+            
+            // VAT
+            const vatAmount = (subtotal + contingencyAmount) * 0.135;
+            
+            // Total
+            const totalCost = subtotal + contingencyAmount + vatAmount;
+            const costPerSqm = totalCost / area;
+            
+            // Update display
+            document.getElementById('totalCost').textContent = formatCurrency(totalCost);
+            document.getElementById('costPerSqm').textContent = Math.round(costPerSqm);
+            
+            // Update breakdown
+            document.getElementById('sitePrep').textContent = formatNumber(sitePrep * locationQualityMultiplier);
+            document.getElementById('foundations').textContent = formatNumber(foundations * locationQualityMultiplier);
+            document.getElementById('structureCost').textContent = formatNumber(structureCost * locationQualityMultiplier);
+            document.getElementById('roofCost').textContent = formatNumber(roofCost * locationQualityMultiplier);
+            document.getElementById('windowsCost').textContent = formatNumber(windowsCost * locationQualityMultiplier);
+            document.getElementById('externalCost').textContent = formatNumber(externalCost * locationQualityMultiplier);
+            document.getElementById('internalFinishes').textContent = formatNumber(internalFinishes * locationQualityMultiplier);
+            document.getElementById('kitchenCost').textContent = formatNumber(kitchenCost * locationQualityMultiplier);
+            document.getElementById('bathroomsCost').textContent = formatNumber(bathroomsCost * locationQualityMultiplier);
+            document.getElementById('stairsDoors').textContent = formatNumber(stairsDoors * locationQualityMultiplier);
+            document.getElementById('electricalCost').textContent = formatNumber(electricalCost * locationQualityMultiplier);
+            document.getElementById('plumbingCost').textContent = formatNumber(plumbingCost * locationQualityMultiplier);
+            document.getElementById('otherServices').textContent = formatNumber(otherServices * locationQualityMultiplier);
+            document.getElementById('drivewayCost').textContent = formatNumber(drivewayCost * locationQualityMultiplier);
+            document.getElementById('landscapeCost').textContent = formatNumber(landscapeCost * locationQualityMultiplier);
+            document.getElementById('connectionsCost').textContent = formatNumber(connectionsCost * locationQualityMultiplier);
+            document.getElementById('professionalFees').textContent = formatNumber(professionalFees);
+            document.getElementById('statutoryCosts').textContent = formatNumber(statutoryCosts);
+            document.getElementById('insuranceCosts').textContent = formatNumber(insuranceCosts);
+            document.getElementById('subtotal').textContent = formatNumber(subtotal);
+            document.getElementById('contingencyAmount').textContent = formatNumber(contingencyAmount);
+            document.getElementById('vatAmount').textContent = formatNumber(vatAmount);
+            document.getElementById('finalTotal').textContent = formatNumber(totalCost);
+            
+            // Store calculations for report
+            calculations = {
+                area, storeys, totalCost, costPerSqm, subtotal, contingencyAmount, vatAmount,
+                breakdown: {
+                    sitePrep: sitePrep * locationQualityMultiplier,
+                    foundations: foundations * locationQualityMultiplier,
+                    structure: structureCost * locationQualityMultiplier,
+                    roof: roofCost * locationQualityMultiplier,
+                    windows: windowsCost * locationQualityMultiplier,
+                    external: externalCost * locationQualityMultiplier,
+                    internal: internalFinishes * locationQualityMultiplier,
+                    kitchen: kitchenCost * locationQualityMultiplier,
+                    bathrooms: bathroomsCost * locationQualityMultiplier,
+                    stairsDoors: stairsDoors * locationQualityMultiplier,
+                    electrical: electricalCost * locationQualityMultiplier,
+                    plumbing: plumbingCost * locationQualityMultiplier,
+                    otherServices: otherServices * locationQualityMultiplier,
+                    driveway: drivewayCost * locationQualityMultiplier,
+                    landscape: landscapeCost * locationQualityMultiplier,
+                    connections: connectionsCost * locationQualityMultiplier,
+                    professional: professionalFees,
+                    statutory: statutoryCosts,
+                    insurance: insuranceCosts
+                }
+            };
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return Math.round(amount).toLocaleString('en-IE');
+        }
+
+        // Format number
+        function formatNumber(amount) {
+            return Math.round(amount).toLocaleString('en-IE');
+        }
+
+        // Generate report
+        function generateReport() {
+            const report = `IRISH CONSTRUCTION COST ESTIMATE
+Generated: ${new Date().toLocaleDateString('en-IE')}
+
+PROJECT DETAILS
+Floor Area: ${calculations.area} m²
+Number of Storeys: ${calculations.storeys}
+Cost per m²: €${Math.round(calculations.costPerSqm)}
+
+COST BREAKDOWN
+Site Preparation: €${formatNumber(calculations.breakdown.sitePrep)}
+Foundations: €${formatNumber(calculations.breakdown.foundations)}
+Structure: €${formatNumber(calculations.breakdown.structure)}
+Roof: €${formatNumber(calculations.breakdown.roof)}
+Windows & Doors: €${formatNumber(calculations.breakdown.windows)}
+External Finishes: €${formatNumber(calculations.breakdown.external)}
+Internal Finishes: €${formatNumber(calculations.breakdown.internal)}
+Kitchen & Utility: €${formatNumber(calculations.breakdown.kitchen)}
+Bathrooms: €${formatNumber(calculations.breakdown.bathrooms)}
+Stairs & Doors: €${formatNumber(calculations.breakdown.stairsDoors)}
+Electrical: €${formatNumber(calculations.breakdown.electrical)}
+Plumbing & Heating: €${formatNumber(calculations.breakdown.plumbing)}
+Other Services: €${formatNumber(calculations.breakdown.otherServices)}
+Driveways & Paths: €${formatNumber(calculations.breakdown.driveway)}
+Landscaping: €${formatNumber(calculations.breakdown.landscape)}
+Connections: €${formatNumber(calculations.breakdown.connections)}
+Professional Fees: €${formatNumber(calculations.breakdown.professional)}
+Statutory Costs: €${formatNumber(calculations.breakdown.statutory)}
+Insurance: €${formatNumber(calculations.breakdown.insurance)}
+
+SUMMARY
+Construction Subtotal: €${formatNumber(calculations.subtotal)}
+Contingency: €${formatNumber(calculations.contingencyAmount)}
+VAT @ 13.5%: €${formatNumber(calculations.vatAmount)}
+
+TOTAL PROJECT COST: €${formatNumber(calculations.totalCost)}
+
+Note: This is an estimate only. Actual costs may vary.
+Generated by Irish Construction Calculator`;
+
+            // For mobile app, this would use native sharing
+            // For now, copy to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(report).then(() => {
+                    alert('Report copied to clipboard!');
+                });
+            } else {
+                alert('Report generated! (Copy function not available in this browser)');
+            }
+        }
+
+        // Share calculation
+        function shareCalculation() {
+            const shareText = `Irish Construction Estimate: €${formatNumber(calculations.totalCost)} for ${calculations.area}m² house (€${Math.round(calculations.costPerSqm)}/m²)`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Construction Cost Estimate',
+                    text: shareText
+                });
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert('Calculation copied to clipboard!');
+                });
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            calculateAll();
+        });
+
+        // Prevent pull-to-refresh on mobile
+        document.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
